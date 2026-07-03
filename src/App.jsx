@@ -255,30 +255,32 @@ export default function App() {
   /* 키보드 조작 */
   useEffect(() => {
     const onKey = (e) => {
-      const k = e.key;
-      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(k)) {
+      // e.key 는 한글 입력 상태에서 'r' 대신 'ㄱ' 이 되어 매칭이 깨진다.
+      // e.code 는 물리 키 기준이라 한/영 상태와 무관하게 동작한다.
+      const c = e.code;
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(c)) {
         e.preventDefault();
       }
       // 클리어 오버레이가 떠 있을 때: Enter/Space = 다음 단계(마지막 단계면 다시하기)
       if (game.won) {
-        if (k === 'Enter' || k === ' ') {
+        if (c === 'Enter' || c === 'NumpadEnter' || c === 'Space') {
           e.preventDefault(); // 포커스된 버튼의 중복 클릭 방지
           if (game.levelIndex + 1 < LEVELS.length) goNext();
           else dispatch({ type: 'RESTART' });
-        } else if (k === 'r' || k === 'R') {
+        } else if (c === 'KeyR') {
           dispatch({ type: 'RESTART' });
-        } else if (['z', 'Z', 'u', 'U', 'Backspace'].includes(k)) {
+        } else if (['KeyZ', 'KeyU', 'Backspace'].includes(c)) {
           dispatch({ type: 'UNDO' }); // 마지막 수 무르기 — 오버레이도 닫힌다
         }
         return;
       }
-      switch (k) {
-        case 'ArrowUp': case 'w': case 'W': moveDir('up'); break;
-        case 'ArrowDown': case 's': case 'S': moveDir('down'); break;
-        case 'ArrowLeft': case 'a': case 'A': moveDir('left'); break;
-        case 'ArrowRight': case 'd': case 'D': moveDir('right'); break;
-        case 'z': case 'Z': case 'u': case 'U': case 'Backspace': dispatch({ type: 'UNDO' }); break;
-        case 'r': case 'R': dispatch({ type: 'RESTART' }); break;
+      switch (c) {
+        case 'ArrowUp': case 'KeyW': moveDir('up'); break;
+        case 'ArrowDown': case 'KeyS': moveDir('down'); break;
+        case 'ArrowLeft': case 'KeyA': moveDir('left'); break;
+        case 'ArrowRight': case 'KeyD': moveDir('right'); break;
+        case 'KeyZ': case 'KeyU': case 'Backspace': dispatch({ type: 'UNDO' }); break;
+        case 'KeyR': dispatch({ type: 'RESTART' }); break;
         default: break;
       }
     };
