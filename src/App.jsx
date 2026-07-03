@@ -208,6 +208,9 @@ function WinOverlay({ moves, isLast, onNext, onRetry }) {
             <button className="btn primary" onClick={onNext}>다음 단계 →</button>
           )}
         </div>
+        <p className="key-hint">
+          {isLast ? 'Enter ⏎ 다시하기' : 'Enter ⏎ 다음 단계 · R 다시하기'}
+        </p>
       </div>
     </div>
   );
@@ -256,6 +259,19 @@ export default function App() {
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(k)) {
         e.preventDefault();
       }
+      // 클리어 오버레이가 떠 있을 때: Enter/Space = 다음 단계(마지막 단계면 다시하기)
+      if (game.won) {
+        if (k === 'Enter' || k === ' ') {
+          e.preventDefault(); // 포커스된 버튼의 중복 클릭 방지
+          if (game.levelIndex + 1 < LEVELS.length) goNext();
+          else dispatch({ type: 'RESTART' });
+        } else if (k === 'r' || k === 'R') {
+          dispatch({ type: 'RESTART' });
+        } else if (['z', 'Z', 'u', 'U', 'Backspace'].includes(k)) {
+          dispatch({ type: 'UNDO' }); // 마지막 수 무르기 — 오버레이도 닫힌다
+        }
+        return;
+      }
       switch (k) {
         case 'ArrowUp': case 'w': case 'W': moveDir('up'); break;
         case 'ArrowDown': case 's': case 'S': moveDir('down'); break;
@@ -268,7 +284,7 @@ export default function App() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [moveDir]);
+  }, [moveDir, game.won, game.levelIndex, goNext]);
 
   /* 마지막 진행 단계 기록 */
   useEffect(() => {
